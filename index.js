@@ -20,23 +20,33 @@ db = mysql.createConnection(
   console.log(`Connected to the employee_db database.`)
 );
 
-const employee = []
 
 const listOfOptions = ["View All Employees", "View Employees by Manager", "View All Departments", "View All Roles", "Add A Department", "Add A Role", "Add An Employee", "Update Employee Role"]
 
 function getAllEmployees() {
-  db.query('SELECT employee.id, employee.first_name, employee.last_name, role.title, employee.manager_id FROM employee JOIN role WHERE employee.role_id = role.id', function (err, results) {
+  db.query('SELECT employee.id, employee.first_name, employee.last_name, role.title, employee.role_id, employee.manager_id FROM employee JOIN role WHERE employee.role_id = role.id', function (err, results) {
     console.table(results)
     return Start();
   });
 }
 
 function getEmployeesByManger() {
-  db.query('SELECT * FROM employee WHERE employee.manager_id = 6', function (err, results) {
-    console.table(results)
-    return Start();
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "What is the id of the manager you would like to search?",
+      name: "id"
+    }
+  ]).then(response => {
+    let id = response.id
+    db.query(`SELECT * FROM employee WHERE employee.manager_id = ${id}`, function (err, results) {
+      console.table(results)
+      return Start();
+    });
   });
 }
+
+
 
 function getAllDepartments() {
   db.query('SELECT * FROM department', function (err, results) {
@@ -62,8 +72,7 @@ function addDepartment() {
   ]).then(response => {
     let name = response.department
     db.query(`INSERT INTO department (department_name) VALUES ("${name}")`, function (err, results) {
-      getAllDepartments()
-      return Start();
+      getAllDepartments();
     });
   });
 }
@@ -90,8 +99,7 @@ function addRole() {
     let salary = response.salary
     let department = response.department
     db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${title}", ${salary}, ${department} )`, function (err, results) {
-      getAllRoles()
-      return Start();
+      getAllRoles();
     });
   });
 }
@@ -124,8 +132,7 @@ function addEmployee() {
     let role = response.role
     let manager = response.manager
     db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${first}", "${last}", ${role}, ${manager})`, function (err, results) {
-      getAllEmployees()
-      return Start();
+      getAllEmployees();
     });
   });
 }
